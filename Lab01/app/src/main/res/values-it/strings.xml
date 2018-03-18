@@ -1,0 +1,9 @@
+<resources>
+    <string name="app_name">Lab01</string>
+    <string name="action_edit">Modifica</string>
+    <string name="email">Email</string>
+    <string name="short_bio">La tua Bio</string>
+    <string name="no_bio">Nessuna Bio</string>
+    <string name="mail">Mail</string>
+    <string name="name">Nome</string>
+</resources>

@@ -1,8 +1,9 @@
 <resources>
     <string name="app_name">Lab01</string>
     <string name="action_edit">Edit</string>
-    <string name="name">Name</string>
     <string name="email">Email</string>
     <string name="short_bio">Short Bio</string>
     <string name="no_bio">No bio</string>
+    <string name="mail">Mail</string>
+    <string name="name">Name</string>
 </resources>
