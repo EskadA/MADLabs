@@ -6,4 +6,9 @@
     <string name="no_bio">Nessuna Bio</string>
     <string name="mail">Mail</string>
     <string name="name">Nome</string>
+    <string name="edit_title">Modifica il profilo</string>
+    <string name="name_insert">Inserisci il tuo nome</string>
+    <string name="mail_insert">Inserisci la tua mail</string>
+    <string name="action_save">Salva</string>
+    <string name="mod_bio">Modifica la tua bio</string>
 </resources>

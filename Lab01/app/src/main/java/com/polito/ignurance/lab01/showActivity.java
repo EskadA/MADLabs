@@ -9,6 +9,7 @@ import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 public class showActivity extends AppCompatActivity {
@@ -20,6 +21,9 @@ public class showActivity extends AppCompatActivity {
     TextView name;
     TextView mail;
     TextView bio;
+
+    //ImageView
+    ImageView profileImage;
 
     //SharedPreferences
     SharedPreferences preferences;
@@ -84,8 +88,9 @@ public class showActivity extends AppCompatActivity {
 
     //Sel all the texts
     private void setTexts(){
-        name.setText(preferences.getString("Name", "Name"));
-        mail.setText(preferences.getString("Mail", "Mail"));
-        bio.setText(preferences.getString("Bio", "No Bio"));
+        name.setText(preferences.getString("Name", getString(R.string.name)));
+        mail.setText(preferences.getString("Mail", getString(R.string.mail)));
+        bio.setText(preferences.getString("Bio", getString(R.string.no_bio)));
     }
+
 }
