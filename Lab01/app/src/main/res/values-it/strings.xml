@@ -11,4 +11,9 @@
     <string name="mail_insert">Inserisci la tua mail</string>
     <string name="action_save">Salva</string>
     <string name="mod_bio">Modifica la tua bio</string>
+    <string name="folder_error">Errore nella cartella interna</string>
+    <string name="msg">Per favore, attiva i permessi</string>
+    <string name="grant">CONCEDI</string>
+    <string name="enable">ABILITA</string>
+    <string name="camera">Camera</string>
 </resources>

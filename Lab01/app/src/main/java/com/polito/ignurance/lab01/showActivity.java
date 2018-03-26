@@ -1,32 +1,43 @@
 package com.polito.ignurance.lab01;
 
+import android.Manifest;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.os.Bundle;
-import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.widget.ImageView;
 import android.widget.TextView;
 
-public class showActivity extends AppCompatActivity {
+import com.polito.ignurance.lab01.tools.AppCompatPermissionActivity;
+import com.polito.ignurance.lab01.tools.ProfileImageManager;
 
-    //Toolbar
-    Toolbar toolbar;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+
+public class showActivity extends AppCompatPermissionActivity {
+
+    private static final int UPLOAD_IMAGE = 10;
+    private static final String filename = "profileImage.png";
 
     //TextViews
-    TextView name;
-    TextView mail;
-    TextView bio;
+    private TextView name;
+    private TextView mail;
+    private TextView bio;
 
     //ImageView
-    ImageView profileImage;
+    private ImageView profileImage;
+    private ProfileImageManager imageManager;
 
     //SharedPreferences
-    SharedPreferences preferences;
+    private SharedPreferences preferences;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -36,19 +47,37 @@ public class showActivity extends AppCompatActivity {
         preferences = getSharedPreferences("Info", Context.MODE_PRIVATE);
 
         getTextViews();
+        setImageView();
         setToolbar();
+    }
+
+    @Override
+    public void onPermissionGranted(int requestCode) {
+        switch (requestCode){
+            case UPLOAD_IMAGE:
+                String path = preferences.getString("imagePath", null);
+                if(path != null){
+                    Bitmap bitmap = imageManager.loadImageFromInternalStorage(path, filename);
+                    if(bitmap != null)
+                        profileImage.setImageBitmap(bitmap);
+                    Log.d("image", "Success" + path);
+                }
+                break;
+        }
     }
 
     @Override
     protected void onRestoreInstanceState(Bundle savedInstanceState) {
         super.onRestoreInstanceState(savedInstanceState);
         setTexts();
+        setImageView();
     }
 
     @Override
     protected void onResume() {
         super.onResume();
         setTexts();
+        setImageView();
     }
 
     @Override
@@ -74,9 +103,15 @@ public class showActivity extends AppCompatActivity {
 
     //Set app Toolbar
     private void setToolbar(){
-        toolbar = (Toolbar) findViewById(R.id.toolbar);
+        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
         setTitle(name.getText());
+    }
+
+    private void setImageView() {
+        profileImage = (ImageView)findViewById(R.id.profileImage);
+        imageManager = new ProfileImageManager();
+        requestAppPermission(new String[]{Manifest.permission.READ_EXTERNAL_STORAGE}, R.string.msg, UPLOAD_IMAGE);
     }
 
     //Get all the text views

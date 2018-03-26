@@ -1,17 +1,20 @@
 package com.polito.ignurance.lab01;
 
+import android.Manifest;
+import android.app.AlertDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.Bundle;
-import android.os.TokenWatcher;
-import android.support.v7.app.AppCompatActivity;
+import android.provider.MediaStore;
 import android.support.v7.widget.Toolbar;
 import android.text.Editable;
 import android.text.TextWatcher;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -21,27 +24,38 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import java.io.FileNotFoundException;
+import com.polito.ignurance.lab01.tools.AppCompatPermissionActivity;
+import com.polito.ignurance.lab01.tools.ProfileImageManager;
 
-public class editActivity extends AppCompatActivity {
+import java.io.IOException;
 
-    //toolbar
-    Toolbar toolbar;
+public class editActivity extends AppCompatPermissionActivity {
+
+    private static final int GET_FROM_GALLERY = 5;
+    private static final int PHOTO_REQUEST_CODE = 6;
+    private static final int UPLOAD_IMAGE = 10;
+    private static final int RELOAD_IMAGE = 11;
+
+    private static final String filename = "profileImage.png";
+    private static final String tempFilename= "profileImage(temp).png";
 
     //edit texts
-    EditText name;
-    EditText mail;
-    EditText bio;
+    private EditText name;
+    private EditText mail;
+    private EditText bio;
+    private String nameText;
+    private String mailText;
+    private String bioText;
 
     //ImageView
-    ImageView profileImage;
+    private ImageView profileImage;
+    private ProfileImageManager imageManager;
+    private Bitmap bitmap;
+    private String path;
+    private boolean isChanged = false;
 
     //some kinds of variables
-    String nameText;
-    String mailText;
-    String bioText;
-    TextView counterView;
-    int counter;
+    private TextView counterView;
     private final TextWatcher characterWatcher = new TextWatcher() {
 
         @Override
@@ -51,8 +65,9 @@ public class editActivity extends AppCompatActivity {
 
         @Override
         public void onTextChanged(CharSequence s, int start, int before, int count) {
+            int counter;
             counter = s.length();
-            counterView.setText(String.valueOf(counter) + "/200");
+            counterView.setText(String.format("%s/200", String.valueOf(counter)));
         }
 
         @Override
@@ -62,8 +77,8 @@ public class editActivity extends AppCompatActivity {
     };
 
     //shared preferences
-    SharedPreferences preferences;
-    SharedPreferences.Editor editor;
+    private SharedPreferences preferences;
+    private SharedPreferences.Editor editor;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -71,17 +86,54 @@ public class editActivity extends AppCompatActivity {
         setContentView(R.layout.activity_edit);
 
         preferences = getSharedPreferences("Info", Context.MODE_PRIVATE);
+        editor = preferences.edit();
+
         counterView = (TextView)findViewById(R.id.counter);
 
         setToolbar();
+
+        //set image view
         setProfileImageListener();
+        setImageView(UPLOAD_IMAGE);
+
+        //set text in the edit boxes
         getEditTextViews();
         getTextsFromPreferences();
         setTexts();
 
         //set character counter
-        counterView.setText(bioText.length() + "/200");
+        counterView.setText(String.valueOf(bioText.length()) + "/200");
         bio.addTextChangedListener(characterWatcher);
+    }
+
+    @Override
+    public void onPermissionGranted(int requestCode) {
+        path = preferences.getString("imagePath", null);
+        switch (requestCode) {
+            case UPLOAD_IMAGE:
+                if (path != null) {
+                    Log.d("PathNotNull", "Upload: success");
+                    bitmap = imageManager.loadImageFromInternalStorage(path, filename);
+                    if (bitmap != null)
+                        profileImage.setImageBitmap(bitmap);
+                }
+                break;
+            case RELOAD_IMAGE:
+                if (path != null) {
+                    Log.d("PathNotNull", "Reload: success");
+                    bitmap = imageManager.loadImageFromInternalStorage(path, tempFilename);
+                    if (bitmap != null)
+                        profileImage.setImageBitmap(bitmap);
+                }
+                break;
+            case PHOTO_REQUEST_CODE:
+                Intent photoIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+                startActivityForResult(photoIntent, PHOTO_REQUEST_CODE);
+                break;
+        }
+        if(path == null){
+            Log.d("PathNull", "Path is null");
+        }
     }
 
     @Override
@@ -91,6 +143,12 @@ public class editActivity extends AppCompatActivity {
         nameText = savedInstanceState.getString("Name");
         mailText = savedInstanceState.getString("Mail");
         bioText = savedInstanceState.getString("Bio");
+
+        if(isChanged)
+            setImageView(RELOAD_IMAGE);
+        else
+            setImageView(UPLOAD_IMAGE);
+
         setTexts();
 
         //get previous cursor focus
@@ -105,6 +163,7 @@ public class editActivity extends AppCompatActivity {
         outState.putString("Name", nameText);
         outState.putString("Mail", mailText);
         outState.putString("Bio", bioText);
+
 
         //set cursor position
         setCursorFocus(outState);
@@ -122,10 +181,12 @@ public class editActivity extends AppCompatActivity {
         // Handle item selection
         switch (item.getItemId()) {
             case R.id.action_save:
-                editor = preferences.edit();
                 getTextFromEditTextView();
 
                 if(checkEditTextViewInput()){
+                    path = imageManager.saveToInternalStorage(bitmap, filename, getApplicationContext());
+                    editor.putString("imagePath", path);
+                    editor.commit();
                     finish();
                 }
 
@@ -139,26 +200,40 @@ public class editActivity extends AppCompatActivity {
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
 
-        if (resultCode == RESULT_OK) {
-            Uri targetUri = data.getData();
-            Bitmap bitmap;
-            try {
-                bitmap = BitmapFactory.decodeStream(getContentResolver().openInputStream(targetUri));
-                profileImage.setImageBitmap(bitmap);
-            } catch (FileNotFoundException e) {
-                e.printStackTrace();
+        if(resultCode == RESULT_OK){
+            switch (requestCode){
+                case GET_FROM_GALLERY:
+                    Uri uri = data.getData();
+                    try {
+                        bitmap = BitmapFactory.decodeStream(getContentResolver().openInputStream(uri));
+                        path = imageManager.saveToInternalStorage(bitmap, tempFilename, getApplicationContext());
+                        editor.commit();
+                        isChanged = true;
+                        profileImage.setImageBitmap(bitmap);
+                    } catch (IOException e) {
+                        Log.e("bitmap", getString(R.string.err_bitmap_from_uri));
+                    }
+                    break;
+
+                case PHOTO_REQUEST_CODE:
+                    bitmap = (Bitmap) data.getExtras().get("data");
+                    path = imageManager.saveToInternalStorage(bitmap, tempFilename, getApplicationContext());
+                    editor.commit();
+                    isChanged = true;
+                    profileImage.setImageBitmap(bitmap);
+                    break;
             }
         }
     }
 
     //Set app Toolbar
     private void setToolbar(){
-        toolbar = (Toolbar) findViewById(R.id.toolbar);
+        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
         setTitle(getString(R.string.edit_title));
     }
 
-    //Sel all the texts
+    //Set all the texts
     private void setTexts(){
         name.setText(nameText);
         mail.setText(mailText);
@@ -171,27 +246,31 @@ public class editActivity extends AppCompatActivity {
 
             @Override
             public void onClick(View v) {
-                Intent intent = new Intent(Intent.ACTION_PICK,
-                        android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
-                startActivityForResult(intent, 0);
+                AlertDialog.Builder builder = new AlertDialog.Builder(editActivity.this);
+                builder.setItems(new String[]{getString(R.string.camera), getString(R.string.gallery)}, new DialogInterface.OnClickListener() {
+                            public void onClick(DialogInterface dialog, int which) {
+                                switch (which) {
+                                    case 0:
+                                        requestAppPermission(new String[]{Manifest.permission.CAMERA,}, R.string.msg, PHOTO_REQUEST_CODE);
+                                        break;
+                                    case 1:
+                                        Intent galleryIntent = new Intent(Intent.ACTION_GET_CONTENT,
+                                                MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
+                                        startActivityForResult(galleryIntent, GET_FROM_GALLERY);
+                                        break;
+                                }
+                            }
+                        }).create().show();
             }
         });
+
+        imageManager = new ProfileImageManager();
     }
 
-    private void setCursorFocus(Bundle outState){
-        View focusedChild = getCurrentFocus();
+    private void setImageView(int action) {
+        profileImage = (ImageView)findViewById(R.id.profileImage);
+        requestAppPermission(new String[]{Manifest.permission.READ_EXTERNAL_STORAGE,}, R.string.msg, action);
 
-        if (focusedChild != null) {
-            int focusID = focusedChild.getId();
-            int cursorLoc = 0;
-
-            if (focusedChild instanceof EditText) {
-                cursorLoc = ((EditText) focusedChild).getSelectionStart();
-            }
-
-            outState.putInt("focusID", focusID);
-            outState.putInt("cursorLoc", cursorLoc);
-        }
     }
 
     private boolean checkEditTextViewInput(){
@@ -242,6 +321,22 @@ public class editActivity extends AppCompatActivity {
 
     }
 
+    private void setCursorFocus(Bundle outState){
+        View focusedChild = getCurrentFocus();
+
+        if (focusedChild != null) {
+            int focusID = focusedChild.getId();
+            int cursorLoc = 0;
+
+            if (focusedChild instanceof EditText) {
+                cursorLoc = ((EditText) focusedChild).getSelectionStart();
+            }
+
+            outState.putInt("focusID", focusID);
+            outState.putInt("cursorLoc", cursorLoc);
+        }
+    }
+
     private void getCursorFocus(Bundle savedInstanceState){
         int focusID = savedInstanceState.getInt("focusID", View.NO_ID);
 
@@ -255,4 +350,5 @@ public class editActivity extends AppCompatActivity {
             }
         }
     }
+
 }
