@@ -10,17 +10,10 @@
     <string name="name_insert">Insert your name</string>
     <string name="mail_insert">Insert your mail</string>
     <string name="action_save">Save</string>
-    <string name="mod_bio">Modify your bio</string>
     <string name="folder_error">Folder error</string>
     <string name="msg">Please, enable all permissions</string>
     <string name="grant">GRANT</string>
     <string name="enable">ENABLE</string>
-
-    //Log errors
-    <string name="err_profile_image_load">Error: profile image not loaded</string>
-    <string name="err_close_output_stream">Error: close output stream</string>
-    <string name="err_profile_image_save">Error: profile image not saved</string>
-    <string name="err_bitmap_from_uri">Error: get bitmap from uri</string>
     <string name="camera">Camera</string>
     <string name="gallery">Gallery</string>
 </resources>

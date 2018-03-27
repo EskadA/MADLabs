@@ -36,8 +36,8 @@ public class editActivity extends AppCompatPermissionActivity {
     private static final int UPLOAD_IMAGE = 10;
     private static final int RELOAD_IMAGE = 11;
 
-    private static final String filename = "profileImage.png";
-    private static final String tempFilename= "profileImage(temp).png";
+    private static final String filename = "profileImage.jpeg";
+    private static final String tempFilename= "profileImage(temp).jpeg";
 
     //edit texts
     private EditText name;
@@ -108,27 +108,15 @@ public class editActivity extends AppCompatPermissionActivity {
 
     @Override
     public void onPermissionGranted(int requestCode) {
-        path = preferences.getString("imagePath", null);
         switch (requestCode) {
-            case UPLOAD_IMAGE:
-                if (path != null) {
-                    Log.d("PathNotNull", "Upload: success");
-                    bitmap = imageManager.loadImageFromInternalStorage(path, filename);
-                    if (bitmap != null)
-                        profileImage.setImageBitmap(bitmap);
-                }
-                break;
-            case RELOAD_IMAGE:
-                if (path != null) {
-                    Log.d("PathNotNull", "Reload: success");
-                    bitmap = imageManager.loadImageFromInternalStorage(path, tempFilename);
-                    if (bitmap != null)
-                        profileImage.setImageBitmap(bitmap);
-                }
-                break;
             case PHOTO_REQUEST_CODE:
                 Intent photoIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
                 startActivityForResult(photoIntent, PHOTO_REQUEST_CODE);
+                break;
+            case GET_FROM_GALLERY:
+                Intent galleryIntent = new Intent(Intent.ACTION_GET_CONTENT,
+                        MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
+                startActivityForResult(galleryIntent, GET_FROM_GALLERY);
                 break;
         }
         if(path == null){
@@ -143,6 +131,7 @@ public class editActivity extends AppCompatPermissionActivity {
         nameText = savedInstanceState.getString("Name");
         mailText = savedInstanceState.getString("Mail");
         bioText = savedInstanceState.getString("Bio");
+        isChanged = savedInstanceState.getBoolean("isChanged");
 
         if(isChanged)
             setImageView(RELOAD_IMAGE);
@@ -163,7 +152,7 @@ public class editActivity extends AppCompatPermissionActivity {
         outState.putString("Name", nameText);
         outState.putString("Mail", mailText);
         outState.putString("Bio", bioText);
-
+        outState.putBoolean("isChanged", isChanged);
 
         //set cursor position
         setCursorFocus(outState);
@@ -211,7 +200,7 @@ public class editActivity extends AppCompatPermissionActivity {
                         isChanged = true;
                         profileImage.setImageBitmap(bitmap);
                     } catch (IOException e) {
-                        Log.e("bitmap", getString(R.string.err_bitmap_from_uri));
+                        Log.e("bitmap", "Failure: error on bitmap upload");
                     }
                     break;
 
@@ -226,11 +215,18 @@ public class editActivity extends AppCompatPermissionActivity {
         }
     }
 
+    @Override
+    public boolean onSupportNavigateUp() {
+        onBackPressed();
+        return true;
+    }
+
     //Set app Toolbar
     private void setToolbar(){
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+        toolbar.setTitle(getString(R.string.edit_title));
+        toolbar.setNavigationIcon(R.drawable.ic_action_back);
         setSupportActionBar(toolbar);
-        setTitle(getString(R.string.edit_title));
     }
 
     //Set all the texts
@@ -242,6 +238,8 @@ public class editActivity extends AppCompatPermissionActivity {
 
     private void setProfileImageListener(){
         profileImage = (ImageView)findViewById(R.id.profileImage);
+        imageManager = new ProfileImageManager();
+
         profileImage.setOnClickListener(new ImageView.OnClickListener(){
 
             @Override
@@ -251,12 +249,10 @@ public class editActivity extends AppCompatPermissionActivity {
                             public void onClick(DialogInterface dialog, int which) {
                                 switch (which) {
                                     case 0:
-                                        requestAppPermission(new String[]{Manifest.permission.CAMERA,}, R.string.msg, PHOTO_REQUEST_CODE);
+                                        requestAppPermission(new String[]{Manifest.permission.CAMERA}, R.string.msg, PHOTO_REQUEST_CODE);
                                         break;
                                     case 1:
-                                        Intent galleryIntent = new Intent(Intent.ACTION_GET_CONTENT,
-                                                MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
-                                        startActivityForResult(galleryIntent, GET_FROM_GALLERY);
+                                        requestAppPermission(new String[]{Manifest.permission.READ_EXTERNAL_STORAGE}, R.string.msg, GET_FROM_GALLERY);
                                         break;
                                 }
                             }
@@ -264,12 +260,28 @@ public class editActivity extends AppCompatPermissionActivity {
             }
         });
 
-        imageManager = new ProfileImageManager();
     }
 
     private void setImageView(int action) {
-        profileImage = (ImageView)findViewById(R.id.profileImage);
-        requestAppPermission(new String[]{Manifest.permission.READ_EXTERNAL_STORAGE,}, R.string.msg, action);
+        path = preferences.getString("imagePath", null);
+        switch (action) {
+            case UPLOAD_IMAGE:
+                if (path != null) {
+                    Log.d("PathNotNull", "Upload: success");
+                    bitmap = imageManager.loadImageFromInternalStorage(path, filename);
+                    if (bitmap != null)
+                        profileImage.setImageBitmap(bitmap);
+                }
+                break;
+            case RELOAD_IMAGE:
+                if (path != null) {
+                    Log.d("PathNotNull", "Reload: success");
+                    bitmap = imageManager.loadImageFromInternalStorage(path, tempFilename);
+                    if (bitmap != null)
+                        profileImage.setImageBitmap(bitmap);
+                }
+                break;
+        }
 
     }
 

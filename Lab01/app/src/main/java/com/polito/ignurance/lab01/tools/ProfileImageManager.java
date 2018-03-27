@@ -23,7 +23,7 @@ public class ProfileImageManager {
         FileOutputStream fileOutputStream = null;
         try{
             fileOutputStream = new FileOutputStream(imagePath);
-            bitmapImage.compress(Bitmap.CompressFormat.PNG, 75, fileOutputStream);
+            bitmapImage.compress(Bitmap.CompressFormat.JPEG, 100, fileOutputStream);
         } catch (Exception e){
             e.getMessage();
         } finally {
