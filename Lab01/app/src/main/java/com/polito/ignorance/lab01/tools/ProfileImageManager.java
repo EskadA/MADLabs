@@ -1,4 +1,4 @@
-package com.polito.ignurance.lab01.tools;
+package com.polito.ignorance.lab01.tools;
 
 import android.content.Context;
 import android.content.ContextWrapper;

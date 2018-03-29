@@ -1,4 +1,4 @@
-package com.polito.ignurance.lab01.tools;
+package com.polito.ignorance.lab01.tools;
 
 import android.content.Intent;
 import android.content.pm.PackageManager;
@@ -14,7 +14,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.util.SparseIntArray;
 import android.view.View;
 
-import com.polito.ignurance.lab01.R;
+import com.polito.ignorance.lab01.R;
 
 public abstract class AppCompatPermissionActivity extends AppCompatActivity {
 

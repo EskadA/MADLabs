@@ -16,4 +16,5 @@
     <string name="enable">ENABLE</string>
     <string name="camera">Camera</string>
     <string name="gallery">Gallery</string>
+    <string name="profile_image">Profile image</string>
 </resources>

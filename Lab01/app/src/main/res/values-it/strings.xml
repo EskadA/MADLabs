@@ -16,4 +16,5 @@
     <string name="enable">ABILITA</string>
     <string name="camera">Fotocamera</string>
     <string name="gallery">Galleria</string>
+    <string name="profile_image">Immagine profilo</string>
 </resources>

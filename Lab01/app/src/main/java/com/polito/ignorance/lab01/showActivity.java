@@ -1,11 +1,9 @@
-package com.polito.ignurance.lab01;
+package com.polito.ignorance.lab01;
 
-import android.Manifest;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
@@ -16,16 +14,10 @@ import android.view.MenuItem;
 import android.widget.ImageView;
 import android.widget.TextView;
 
-import com.polito.ignurance.lab01.tools.AppCompatPermissionActivity;
-import com.polito.ignurance.lab01.tools.ProfileImageManager;
-
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
+import com.polito.ignorance.lab01.tools.ProfileImageManager;
 
 public class showActivity extends AppCompatActivity {
 
-    private static final int UPLOAD_IMAGE = 10;
     private static final String filename = "profileImage.jpeg";
 
     //Toolbar

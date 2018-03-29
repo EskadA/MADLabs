@@ -1,4 +1,4 @@
-package com.polito.ignurance.lab01;
+package com.polito.ignorance.lab01;
 
 import android.Manifest;
 import android.app.AlertDialog;
@@ -24,8 +24,8 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.polito.ignurance.lab01.tools.AppCompatPermissionActivity;
-import com.polito.ignurance.lab01.tools.ProfileImageManager;
+import com.polito.ignorance.lab01.tools.AppCompatPermissionActivity;
+import com.polito.ignorance.lab01.tools.ProfileImageManager;
 
 import java.io.IOException;
 
@@ -102,7 +102,7 @@ public class editActivity extends AppCompatPermissionActivity {
         setTexts();
 
         //set character counter
-        counterView.setText(String.valueOf(bioText.length()) + "/200");
+        counterView.setText(String.format("%s/200", String.valueOf(bioText.length())));
         bio.addTextChangedListener(characterWatcher);
     }
 

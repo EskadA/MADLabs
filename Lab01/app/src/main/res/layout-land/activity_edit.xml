@@ -5,7 +5,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:windowSoftInputMode="stateUnchanged|adjustResize"
-    tools:context="com.polito.ignurance.lab01.showActivity"
+    tools:context="com.polito.ignorance.lab01.showActivity"
     android:orientation="vertical">
 
     <android.support.v7.widget.Toolbar
@@ -29,7 +29,8 @@
             android:layout_height="match_parent"
             android:layout_weight="1"
             android:layout_margin="8dp"
-            app:srcCompat="@android:drawable/ic_menu_upload" />
+            app:srcCompat="@android:drawable/ic_menu_upload"
+            android:contentDescription="@string/profile_image" />
 
         <ScrollView
             android:layout_width="match_parent"
