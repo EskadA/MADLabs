@@ -1,0 +1,47 @@
+<resources>
+    <string name="app_name">Lab02</string>
+
+    <string name="title_home">Home</string>
+    <string name="title_dashboard">Dashboard</string>
+    <string name="title_notifications">Notifiche</string>
+    <string name="title_profile">Profilo</string>
+    <string name="title_settings">Impostazioni</string>
+
+    <string name="login_page">Pagina di Login</string>
+    <string name="signup_page">Registrazione</string>
+    <string name="forgot_page">Password dimenticata</string>
+
+    <string name="enter_your_email">Inserisci la tua email</string>
+    <string name="enter_your_password">Inserisci la tua password</string>
+    <string name="enter_your_displayed_name">Inserisci il tuo nome visualizzato</string>
+    <string name="forgot_password">Password dimenticata?</string>
+    <string name="or">O</string>
+    <string name="sign_up">Registrati</string>
+
+    <string name="logout">Logout</string>
+    <string name="login">Login</string>
+    <string name="reset_password">Resetta Password</string>
+    <string name="register">Registrati</string>
+    <string name="register_success">Registrazione avvenuta con successo</string>
+    <string name="success">Successo!</string>
+    <string name="go_to_dashboard">Vai alla dashboard</string>
+    <string name="back">Indietro</string>
+
+    <string name="valid_email">Abbiamo spedito una mail all\'indirizzo:</string>
+    <string name="not_valid_email">Inserisci una email valida</string>
+    <string name="password_instruction">Abbiamo bisogno del tuo indirizzo mail con cui ti
+        sei registrato per poterti inviarti le istruzioni di reset della password</string>
+
+    <string name="auth_failed">Autenticazione Fallita</string>
+    <string name="error_network">Per favore, verifica la tua connessione ad internet</string>
+    <string name="error_invalid_password">Password non valida</string>
+    <string name="error_invalid_repeat_password">Ripeti la tua password</string>
+    <string name="error_weak_password">Password troppo debole</string>
+    <string name="error_invalid_email">Email non valida</string>
+    <string name="error_invalid_name">Nome non valido</string>
+    <string name="error_invalid_city">Città non valida</string>
+    <string name="error_user_exists">Utente già registrato con questa email</string>
+    <string name="something_wrong">Qualcosa è andato storto</string>
+    <string name="incorrect_password">Password non corretta</string>
+
+</resources>

@@ -2,6 +2,10 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.polito.ignorance.lab02">
 
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.CAMERA"/>
+
     <application
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
@@ -18,7 +22,13 @@
         </activity>
         <activity android:name=".SignUpActivity" />
         <activity android:name=".ForgotPasswordActivity" />
-        <activity android:name=".DashboardActivity"></activity>
+        <activity
+            android:name=".DashboardActivity"
+            android:label="@string/title_dashboard" />
+        <activity android:name=".InsertBookActivity" />
+        <activity android:name=".ScannerActivity" />
+        <activity android:name=".editActivity"/>
+        <activity android:name=".showActivity" />
     </application>
 
 </manifest>
