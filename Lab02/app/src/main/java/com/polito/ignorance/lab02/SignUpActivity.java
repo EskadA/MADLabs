@@ -136,7 +136,9 @@ public class SignUpActivity extends AppCompatActivity implements View.OnClickLis
 
     private void writeNewUser(String name, String email, String city) {
         User user = new User(name, email, city, "");
-        database.child("users").child(email.replace(",",",,").replace(".", ",")).setValue(user);
+        String userID = email.replace(",",",,").replace(".", ",");
+        database.child("users").child(userID).setValue(user);
+
     }
 
     private boolean controlStrings(String email, final String password, final String passRepeat, String name, String city){

@@ -27,8 +27,8 @@
             android:label="@string/title_dashboard" />
         <activity android:name=".InsertBookActivity" />
         <activity android:name=".ScannerActivity" />
-        <activity android:name=".editActivity"/>
-        <activity android:name=".showActivity" />
+        <activity android:name=".EditActivity"/>
+        <activity android:name=".ShowActivity" />
     </application>
 
 </manifest>

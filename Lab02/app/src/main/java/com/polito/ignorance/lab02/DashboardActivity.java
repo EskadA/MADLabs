@@ -3,6 +3,7 @@ package com.polito.ignorance.lab02;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.Toolbar;
 import android.view.View;
 import android.widget.Button;
 
@@ -25,6 +26,7 @@ public class DashboardActivity extends AppCompatActivity implements View.OnClick
 
         //Button Listener
         setButtonListener();
+        setToolbar();
 
         //Init Firebase
         auth = FirebaseAuth.getInstance();
@@ -41,10 +43,18 @@ public class DashboardActivity extends AppCompatActivity implements View.OnClick
                 startActivity(bookIntent);
                 break;
             case R.id.dashboard_profile:
-                Intent profileIntent = new Intent(DashboardActivity.this, showActivity.class);
+                Intent profileIntent = new Intent(DashboardActivity.this, ShowActivity.class);
                 startActivity(profileIntent);
                 break;
         }
+    }
+
+    //Set app Toolbar
+    private void setToolbar(){
+        Toolbar toolbar;
+        toolbar =  findViewById(R.id.toolbar);
+        setSupportActionBar(toolbar);
+        setTitle("Dashbard");
     }
 
     private void findViews(){

@@ -4,6 +4,7 @@ import android.content.Context;
 import android.content.ContextWrapper;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.net.Uri;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -13,7 +14,7 @@ import java.io.IOException;
 
 public class ConditionImageManager {
 
-    private static final String filepath = "imageDir";
+    private static final String filepath = "bookDir";
 
     public String saveToInternalStorage(Bitmap bitmapImage, String filename, Context applicationContext){
         ContextWrapper contextWrapper = new ContextWrapper(applicationContext);
@@ -45,6 +46,11 @@ public class ConditionImageManager {
             e.getMessage();
         }
         return null;
+    }
+
+    public Uri getUri(String path, String filename){
+        File image = new File(path, filename);
+        return Uri.fromFile(image);
     }
 
 }

@@ -2,6 +2,7 @@ package com.polito.ignorance.lab02;
 
 import android.Manifest;
 import android.app.AlertDialog;
+import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -11,6 +12,7 @@ import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.MediaStore;
+import android.support.annotation.NonNull;
 import android.support.v7.widget.Toolbar;
 import android.text.Editable;
 import android.text.TextWatcher;
@@ -24,12 +26,33 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.bumptech.glide.Glide;
+import com.firebase.ui.storage.images.FirebaseImageLoader;
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.firebase.FirebaseError;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
+import com.google.firebase.storage.FileDownloadTask;
+import com.google.firebase.storage.FirebaseStorage;
+import com.google.firebase.storage.OnProgressListener;
+import com.google.firebase.storage.StorageMetadata;
+import com.google.firebase.storage.StorageReference;
+import com.google.firebase.storage.UploadTask;
 import com.polito.ignorance.lab02.tools.AppCompatPermissionActivity;
 import com.polito.ignorance.lab02.tools.ProfileImageManager;
+import com.polito.ignorance.lab02.tools.User;
 
+import java.io.File;
 import java.io.IOException;
+import java.net.URL;
 
-public class editActivity extends AppCompatPermissionActivity {
+public class EditActivity extends AppCompatPermissionActivity {
 
     private static final int GET_FROM_GALLERY = 5;
     private static final int PHOTO_REQUEST_CODE = 6;
@@ -38,6 +61,7 @@ public class editActivity extends AppCompatPermissionActivity {
 
     private static final String filename = "profileImage.jpeg";
     private static final String tempFilename= "profileImage(temp).jpeg";
+    private static final String TAG = "DatabaseError";
 
     //edit texts
     private EditText name;
@@ -79,6 +103,14 @@ public class editActivity extends AppCompatPermissionActivity {
     //shared preferences
     private SharedPreferences preferences;
     private SharedPreferences.Editor editor;
+    private FirebaseUser authUser;
+    private StorageReference storageRef;
+    private DatabaseReference database;
+    private DatabaseReference ref;
+    private User user;
+    private String email;
+
+    private ProgressDialog progressDialog;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -87,23 +119,30 @@ public class editActivity extends AppCompatPermissionActivity {
 
         preferences = getSharedPreferences("Info", Context.MODE_PRIVATE);
         editor = preferences.edit();
+        database = FirebaseDatabase.getInstance().getReference();
+        storageRef = FirebaseStorage.getInstance().getReference();
+        ref = database.child("users");
+        authUser = FirebaseAuth.getInstance().getCurrentUser();
 
         counterView = (TextView)findViewById(R.id.counter);
+        getEditTextViews();
+
+        progressDialog = new ProgressDialog(this);
 
         setToolbar();
 
         //set image view
+        email = authUser.getEmail().replace(",",",,").replace(".", ",");
         setProfileImageListener();
-        setImageView(UPLOAD_IMAGE);
 
-        //set text in the edit boxes
-        getEditTextViews();
-        getTextsFromPreferences();
-        setTexts();
+        if(savedInstanceState != null)
+            isChanged = savedInstanceState.getBoolean("isChanged");
+
+        if(!isChanged)
+            setImageView(UPLOAD_IMAGE);
 
         //set character counter
-        counterView.setText(String.format("%s/200", String.valueOf(bioText.length())));
-        bio.addTextChangedListener(characterWatcher);
+        getUserReference();
     }
 
     @Override
@@ -128,9 +167,6 @@ public class editActivity extends AppCompatPermissionActivity {
     protected void onRestoreInstanceState(Bundle savedInstanceState) {
         super.onRestoreInstanceState(savedInstanceState);
 
-        nameText = savedInstanceState.getString("Name");
-        mailText = savedInstanceState.getString("Mail");
-        bioText = savedInstanceState.getString("Bio");
         isChanged = savedInstanceState.getBoolean("isChanged");
 
         if(isChanged)
@@ -138,7 +174,7 @@ public class editActivity extends AppCompatPermissionActivity {
         else
             setImageView(UPLOAD_IMAGE);
 
-        setTexts();
+        getUserReference();
 
         //get previous cursor focus
         getCursorFocus(savedInstanceState);
@@ -149,9 +185,10 @@ public class editActivity extends AppCompatPermissionActivity {
         super.onSaveInstanceState(outState);
 
         getTextFromEditTextView();
-        outState.putString("Name", nameText);
-        outState.putString("Mail", mailText);
-        outState.putString("Bio", bioText);
+        user.setUsername(nameText);
+        user.setBio(bioText);
+        user.setEmail(email);
+        ref.child(email).setValue(user);
         outState.putBoolean("isChanged", isChanged);
 
         //set cursor position
@@ -176,7 +213,10 @@ public class editActivity extends AppCompatPermissionActivity {
                     path = imageManager.saveToInternalStorage(bitmap, filename, getApplicationContext());
                     editor.putString("imagePath", path);
                     editor.commit();
-                    finish();
+                    if(isChanged)
+                        uploadToFirebase(storageRef.child("images").child(email).child("profile image"));
+                    else
+                        saveDataToFirebase();
                 }
 
                 return true;
@@ -196,6 +236,7 @@ public class editActivity extends AppCompatPermissionActivity {
                     try {
                         bitmap = BitmapFactory.decodeStream(getContentResolver().openInputStream(uri));
                         path = imageManager.saveToInternalStorage(bitmap, tempFilename, getApplicationContext());
+                        editor.putString("imagePath", path);
                         editor.commit();
                         isChanged = true;
                         profileImage.setImageBitmap(bitmap);
@@ -207,6 +248,7 @@ public class editActivity extends AppCompatPermissionActivity {
                 case PHOTO_REQUEST_CODE:
                     bitmap = (Bitmap) data.getExtras().get("data");
                     path = imageManager.saveToInternalStorage(bitmap, tempFilename, getApplicationContext());
+                    editor.putString("imagePath", path);
                     editor.commit();
                     isChanged = true;
                     profileImage.setImageBitmap(bitmap);
@@ -231,9 +273,9 @@ public class editActivity extends AppCompatPermissionActivity {
 
     //Set all the texts
     private void setTexts(){
-        name.setText(nameText);
-        mail.setText(mailText);
-        bio.setText(bioText);
+        name.setText(user.getUsername());
+        mail.setText(user.getEmail());
+        bio.setText(user.getBio());
     }
 
     private void setProfileImageListener(){
@@ -244,7 +286,7 @@ public class editActivity extends AppCompatPermissionActivity {
 
             @Override
             public void onClick(View v) {
-                AlertDialog.Builder builder = new AlertDialog.Builder(editActivity.this);
+                AlertDialog.Builder builder = new AlertDialog.Builder(EditActivity.this);
                 builder.setItems(new String[]{getString(R.string.camera), getString(R.string.gallery)}, new DialogInterface.OnClickListener() {
                             public void onClick(DialogInterface dialog, int which) {
                                 switch (which) {
@@ -268,9 +310,7 @@ public class editActivity extends AppCompatPermissionActivity {
             case UPLOAD_IMAGE:
                 if (path != null) {
                     Log.d("PathNotNull", "Upload: success");
-                    bitmap = imageManager.loadImageFromInternalStorage(path, filename);
-                    if (bitmap != null)
-                        profileImage.setImageBitmap(bitmap);
+                    downloadToLocalFile(storageRef.child("images").child(email).child("profile image"));
                 }
                 break;
             case RELOAD_IMAGE:
@@ -288,29 +328,22 @@ public class editActivity extends AppCompatPermissionActivity {
     private boolean checkEditTextViewInput(){
         Toast missing;
 
-        if (!nameText.isEmpty()) {
-            editor.putString("Name", nameText);
-        } else {
+        if (nameText.isEmpty()) {
             missing = Toast.makeText(this, R.string.name_insert, Toast.LENGTH_SHORT);
             missing.show();
             return false;
         }
 
-        if (!mailText.isEmpty()) {
-            editor.putString("Mail", mailText);
-        } else {
+        if (mailText.isEmpty()) {
             missing = Toast.makeText(this, R.string.mail_insert, Toast.LENGTH_SHORT);
             missing.show();
             return false;
         }
 
-        if (!bioText.isEmpty()) {
-            editor.putString("Bio", bioText);
-        } else {
-            editor.remove("Bio");
-        }
+        user.setUsername(nameText);
+        user.setBio(bioText);
+        user.setEmail(mailText);
 
-        editor.commit();
         return true;
     }
 
@@ -318,12 +351,6 @@ public class editActivity extends AppCompatPermissionActivity {
         nameText = name.getText().toString();
         mailText = mail.getText().toString();
         bioText = bio.getText().toString();
-    }
-
-    private void getTextsFromPreferences(){
-        nameText = preferences.getString("Name", getString(R.string.name));
-        mailText = preferences.getString("Mail", getString(R.string.mail));
-        bioText = preferences.getString("Bio", getString(R.string.no_bio));
     }
 
     private void getEditTextViews(){
@@ -361,6 +388,103 @@ public class editActivity extends AppCompatPermissionActivity {
                 ((EditText) focusedChild).setSelection(cursorLoc);
             }
         }
+    }
+    private void getUserReference(){
+        ref.child(email).addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                user = dataSnapshot.getValue(User.class);
+                setTexts();
+                counterView.setText(String.format("%s/200", String.valueOf(user.getBio().length())));
+                bio.addTextChangedListener(characterWatcher);
+            }
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+                Log.e(TAG, "onCancelled", databaseError.toException());
+            }
+        });
+    }
+
+    private void downloadToLocalFile(StorageReference fileRef) {
+        if (fileRef != null) {
+            progressDialog.setTitle(getString(R.string.downloading));
+            progressDialog.setMessage(null);
+            progressDialog.show();
+
+            try {
+                final File localFile = File.createTempFile("profileImage", "jpeg");
+
+                fileRef.getFile(localFile).addOnSuccessListener(new OnSuccessListener<FileDownloadTask.TaskSnapshot>() {
+                    @Override
+                    public void onSuccess(FileDownloadTask.TaskSnapshot taskSnapshot) {
+                        Bitmap bmp = BitmapFactory.decodeFile(localFile.getAbsolutePath());
+                        profileImage.setImageBitmap(bmp);
+                        progressDialog.dismiss();
+                    }
+                }).addOnFailureListener(new OnFailureListener() {
+                    @Override
+                    public void onFailure(@NonNull Exception exception) {
+                        progressDialog.dismiss();
+                        Toast.makeText(EditActivity.this, exception.getMessage(), Toast.LENGTH_LONG).show();
+                    }
+                }).addOnProgressListener(new OnProgressListener<FileDownloadTask.TaskSnapshot>() {
+                    @Override
+                    public void onProgress(FileDownloadTask.TaskSnapshot taskSnapshot) {
+                        // progress percentage
+                        double progress = (100.0 * taskSnapshot.getBytesTransferred()) / taskSnapshot.getTotalByteCount();
+
+                        // percentage in progress dialog
+                        progressDialog.setMessage(getString(R.string.downloaded) + ((int) progress) + getString(R.string.perc));
+                    }
+                });
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        } else {
+            Toast.makeText(EditActivity.this, R.string.profile_not_exists, Toast.LENGTH_LONG).show();
+        }
+    }
+
+    private void uploadToFirebase(StorageReference fileRef) {
+        if (fileRef != null) {
+            progressDialog.setTitle(getString(R.string.uploading));
+            progressDialog.setMessage(null);
+            progressDialog.show();
+
+            fileRef.putFile(imageManager.getUri(path, filename))
+                    .addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
+                        @Override
+                        public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
+                            progressDialog.dismiss();
+                            saveDataToFirebase();
+
+                        }
+                    }).addOnFailureListener(new OnFailureListener() {
+                @Override
+                public void onFailure(@NonNull Exception exception) {
+                    progressDialog.dismiss();
+                    Toast.makeText(EditActivity.this, R.string.profile_not_exists, Toast.LENGTH_LONG).show();
+                }
+            }).addOnProgressListener(new OnProgressListener<UploadTask.TaskSnapshot>() {
+                @Override
+                public void onProgress(UploadTask.TaskSnapshot taskSnapshot) {
+                    double progress = (100.0 * taskSnapshot.getBytesTransferred()) / taskSnapshot.getTotalByteCount();
+                    // percentage in progress dialog
+                    progressDialog.setMessage(getString(R.string.uploaded) + ((int) progress) + getString(R.string.perc));
+                }
+            });
+        } else {
+            Toast.makeText(EditActivity.this, R.string.profile_not_exists, Toast.LENGTH_LONG).show();
+        }
+    }
+
+    private void saveDataToFirebase(){
+        ref.child(email).setValue(user, new DatabaseReference.CompletionListener() {
+            @Override
+            public void onComplete(DatabaseError databaseError, DatabaseReference databaseReference) {
+                finish();
+            }
+        });
     }
 
 }

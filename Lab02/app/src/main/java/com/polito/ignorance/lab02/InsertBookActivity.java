@@ -2,6 +2,7 @@ package com.polito.ignorance.lab02;
 
 import android.Manifest;
 import android.app.AlertDialog;
+import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -9,13 +10,31 @@ import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.net.Uri;
-import android.provider.MediaStore;
 import android.os.Bundle;
+import android.provider.MediaStore;
+import android.support.annotation.NonNull;
+import android.support.v7.widget.Toolbar;
 import android.util.Log;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
+import android.widget.Toast;
+
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.storage.FirebaseStorage;
+import com.google.firebase.storage.OnProgressListener;
+import com.google.firebase.storage.StorageReference;
+import com.google.firebase.storage.UploadTask;
 import com.polito.ignorance.lab02.tools.AppCompatPermissionActivity;
 import com.polito.ignorance.lab02.tools.ConditionImageManager;
 
@@ -47,14 +66,28 @@ public class InsertBookActivity extends AppCompatPermissionActivity {
     private EditText EditTextISBN;
     private EditText EditTextPublisher;
     private EditText EditTextPublishedYear;
+    private EditText EditTextCondition;
 
-    private String author;
-    private String title;
     private String ISBNCode;
 
     private SharedPreferences preferences;
+    private SharedPreferences.Editor editor;
+    private String author;
+    private String title;
+    private String publisher;
+    private String publishYear;
+    private String condition;
 
-     //Flow: Main activity with possibility to fill in the fields manually or to press the button "Scan a barcode"
+    private FirebaseUser authUser;
+    private DatabaseReference database;
+    private DatabaseReference ref;
+    private StorageReference storageRef;
+    private Book book;
+    private String email;
+
+    private ProgressDialog progressDialog;
+
+    //Flow: Main activity with possibility to fill in the fields manually or to press the button "Scan a barcode"
     // "Scan a barcode -> Intent to the "ScannerActivity" page: surface view that shows the camera relevation and in result of pointing a barcode print n the screen the code
     //                    If you press the button "Import", this will  return to Main Activity the code using the putExtra of intent
     //                    InsertBookActivity: save the code in the field ISBN and (if ISBN field is setted with the right number of cipher or pushing the button retrieve infos) start an Async Task that will retrieve frome googleapi/books some data about the book using the code just scanned
@@ -68,16 +101,25 @@ public class InsertBookActivity extends AppCompatPermissionActivity {
 
         retrieveButton = findViewById(R.id.startRetrieveTask);
         scanButton = findViewById(R.id.startScan);
-        EditTextAuthor=findViewById(R.id.textAuthor); //da passare al costruttore dell'AsyncTask che dovrà modificarne il valore in seguito al risultato
+        EditTextAuthor=findViewById(R.id.textAuthor);
         EditTextTitle=findViewById(R.id.textTitle);
         EditTextISBN=findViewById(R.id.textISBN);
         EditTextPublisher=findViewById(R.id.textPublisher);
         EditTextPublishedYear=findViewById(R.id.textEditionY);
+        EditTextCondition = findViewById(R.id.textCondition);
+        progressDialog = new ProgressDialog(this);
         //set photo condition image view
+        preferences = getSharedPreferences("ISBN", Context.MODE_PRIVATE);
+        editor = preferences.edit();
+        path = preferences.getString("path", null);
+        storageRef = FirebaseStorage.getInstance().getReference();
+
         setProfileImageListener();
         setImageView(UPLOAD_IMAGE);
+        setToolbar();
 
-        preferences = getSharedPreferences("ISBN", Context.MODE_PRIVATE);
+        database = FirebaseDatabase.getInstance().getReference();
+        ref = database.child("books");
 
         //Se c'è un valore acquisito lo mette in ISBNCode e lo stampa nell'editText
         ISBNCode = getIntent().getStringExtra("ISBNCode");
@@ -99,10 +141,10 @@ public class InsertBookActivity extends AppCompatPermissionActivity {
             public void onClick(View v)
             {
                 //Put a message in the textView
-                EditTextAuthor.setText("Search info...");
-                EditTextTitle.setText("Search info...");
-                EditTextPublisher.setText("Search info...");
-                EditTextPublishedYear.setText("Search info...");
+                EditTextAuthor.setText(R.string.search_info);
+                EditTextTitle.setText(R.string.search_info);
+                EditTextPublisher.setText(R.string.search_info);
+                EditTextPublishedYear.setText(R.string.search_info);
 
                 // Start the AsyncTask.
                 // The AsyncTask has a callback that will update the text view.
@@ -111,12 +153,18 @@ public class InsertBookActivity extends AppCompatPermissionActivity {
                 new AsyncTaskQueryISBN(EditTextAuthor, EditTextTitle, EditTextPublisher, EditTextPublishedYear).execute(ISBNCode); //Insert here the ISBN code scanned
                 //Note: The execute() method is where you pass in the parameters (separated by commas)
                 //that are then passed into doInBackground() by the system. Since this AsyncTask has no parameters, you will leave it blank.
-
-
             }
         });
 
+        authUser = FirebaseAuth.getInstance().getCurrentUser();
+        email = authUser.getEmail().replace(",",",,").replace(".", ",");
+    }
 
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        MenuInflater inflater = getMenuInflater();
+        inflater.inflate(R.menu.share_toolbar, menu);
+        return true;
     }
 
     @Override
@@ -163,7 +211,7 @@ public class InsertBookActivity extends AppCompatPermissionActivity {
                     try {
                         bitmap = BitmapFactory.decodeStream(getContentResolver().openInputStream(uri));
                         path = imageManager.saveToInternalStorage(bitmap, tempFilename, getApplicationContext());
-                        //editor.commit();
+                        preferences.edit().putString("path", path).commit();
                         isChanged = true;
                         ConditionImageView.setImageBitmap(bitmap);
                     } catch (IOException e) {
@@ -213,9 +261,7 @@ public class InsertBookActivity extends AppCompatPermissionActivity {
 
     }
 
-
-    //Restorethe picture uploaded, taking the path in which is saved from preferences
-
+    //Restore the picture uploaded, taking the path in which is saved from preferences
     private void setImageView(int action) {
        // path = preferences.getString("imagePath", null);
         switch (action) {
@@ -238,25 +284,111 @@ public class InsertBookActivity extends AppCompatPermissionActivity {
         }
 
     }
+
+    //Set app Toolbar
+    private void setToolbar(){
+        Toolbar toolbar;
+        toolbar =  findViewById(R.id.toolbar);
+        toolbar.setNavigationIcon(R.drawable.ic_action_back);
+        setSupportActionBar(toolbar);
+        setTitle("Share a Book");
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        // Handle item selection
+        switch (item.getItemId()) {
+            case R.id.action_save:
+                getTextFromEditTextView();
+
+                if(checkEditTextViewInput()){
+                    path = imageManager.saveToInternalStorage(bitmap, filename, getApplicationContext());
+                    editor.putString("imagePath", path);
+                    editor.commit();
+                    if(isChanged)
+                        uploadToFirebase(storageRef.child("images").child(email).child("book images").child(ISBNCode));
+                    else
+                        saveDataToFirebase();
+                }
+
+                return true;
+            default:
+                return super.onOptionsItemSelected(item);
+        }
+    }
+
+    @Override
+    public boolean onSupportNavigateUp() {
+        onBackPressed();
+        return true;
+    }
+
+    private boolean checkEditTextViewInput(){
+        Toast missing;
+
+        if (ISBNCode.isEmpty() && !ISBNCode.equals(getString(R.string.no_data))) {
+            missing = Toast.makeText(this, R.string.isbn_missing, Toast.LENGTH_SHORT);
+            missing.show();
+            return false;
+        }
+
+        if (author.isEmpty() && !author.equals(getString(R.string.no_data))) {
+            missing = Toast.makeText(this, R.string.author_missing, Toast.LENGTH_SHORT);
+            missing.show();
+            return false;
+        }
+
+        if (title.isEmpty() && !title.equals(getString(R.string.no_data))) {
+            missing = Toast.makeText(this, R.string.title_missing, Toast.LENGTH_SHORT);
+            missing.show();
+            return false;
+        }
+
+        if (publisher.isEmpty() && !publisher.equals(getString(R.string.no_data))) {
+            missing = Toast.makeText(this, R.string.publ_missing, Toast.LENGTH_SHORT);
+            missing.show();
+            return false;
+        }
+        if (publishYear.isEmpty() && !publisher.equals(getString(R.string.no_data))) {
+            missing = Toast.makeText(this, R.string.year_missing, Toast.LENGTH_SHORT);
+            missing.show();
+            return false;
+        }
+        if (condition.isEmpty() && !condition.equals(getString(R.string.no_data))) {
+            missing = Toast.makeText(this, R.string.condition_missing, Toast.LENGTH_SHORT);
+            missing.show();
+            return false;
+        }
+
+        book = new Book(ISBNCode, title, author, publisher, publishYear, condition);
+        return true;
+    }
+
+    @Override
+    protected void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+
+        outState.putString("image", path);
+        outState.putBoolean("isChanged", isChanged);
+    }
+
     @Override
     protected void onRestoreInstanceState(Bundle savedInstanceState) {
         super.onRestoreInstanceState(savedInstanceState);
-        //setTexts();
+
+        isChanged = savedInstanceState.getBoolean("isChanged");
+        path = savedInstanceState.getString("image");
+
+        if(isChanged)
+            setImageView(RELOAD_IMAGE);
+        else
+            setImageView(UPLOAD_IMAGE);
     }
 
     @Override
     protected void onResume() {
         super.onResume();
        // setTexts();
-    }
-
-    //Set all the texts in the XML View elements from the java variables
-    private void setTexts(){
-        EditTextAuthor.setText(author);
-        EditTextTitle.setText(title);
-        EditTextISBN.setText(ISBNCode);
-        makeRetrieveButtonClickable();
-
     }
 
     private void makeRetrieveButtonClickable()
@@ -266,9 +398,55 @@ public class InsertBookActivity extends AppCompatPermissionActivity {
 
     }
 
+    private void getTextFromEditTextView(){
+        ISBNCode=EditTextISBN.getText().toString();
+        author=EditTextAuthor.getText().toString();
+        title = EditTextTitle.getText().toString();
+        publisher = EditTextPublisher.getText().toString();
+        publishYear= EditTextPublishedYear.getText().toString();
+        condition=EditTextCondition.getText().toString();
+    }
 
+    private void uploadToFirebase(StorageReference fileRef) {
+        if (fileRef != null) {
+            progressDialog.setTitle(getString(R.string.uploading));
+            progressDialog.setMessage(null);
+            progressDialog.show();
 
+            fileRef.putFile(imageManager.getUri(path, filename))
+                    .addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
+                        @Override
+                        public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
+                            progressDialog.dismiss();
+                            saveDataToFirebase();
 
+                        }
+                    }).addOnFailureListener(new OnFailureListener() {
+                @Override
+                public void onFailure(@NonNull Exception exception) {
+                    progressDialog.dismiss();
+                    Toast.makeText(InsertBookActivity.this, R.string.profile_not_exists, Toast.LENGTH_LONG).show();
+                }
+            }).addOnProgressListener(new OnProgressListener<UploadTask.TaskSnapshot>() {
+                @Override
+                public void onProgress(UploadTask.TaskSnapshot taskSnapshot) {
+                    double progress = (100.0 * taskSnapshot.getBytesTransferred()) / taskSnapshot.getTotalByteCount();
+                    // percentage in progress dialog
+                    progressDialog.setMessage(getString(R.string.uploaded) + ((int) progress) + getString(R.string.perc));
+                }
+            });
+        } else {
+            Toast.makeText(InsertBookActivity.this, R.string.profile_not_exists, Toast.LENGTH_LONG).show();
+        }
+    }
 
+    private void saveDataToFirebase(){
+        ref.child(email).child(ISBNCode).setValue(book, new DatabaseReference.CompletionListener() {
 
+            @Override
+            public void onComplete(DatabaseError databaseError, DatabaseReference databaseReference) {
+                finish();
+            }
+        });
+    }
 }

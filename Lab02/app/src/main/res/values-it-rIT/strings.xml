@@ -44,4 +44,56 @@
     <string name="something_wrong">Qualcosa è andato storto</string>
     <string name="incorrect_password">Password non corretta</string>
 
+    <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="isbn_code">Codice ISBN</string>
+    <string name="author">Autore</string>
+    <string name="title">Titolo</string>
+    <string name="retrieve_infos">Cerca informazioni</string>
+    <string name="scan">Scansiona</string>
+    <string name="publisher">Editore</string>
+    <string name="edition_year">Anno edizione</string>
+    <string name="condition">Condizione</string>
+    <string name="upload_a_photo_to_better_document_the_book_condition">Carica una foto del libro per tracciare la sua condizione</string>
+    <string name="share_your_book">CONDIVIDI LIBRO</string>
+
+    <string name="permission_msg">Per favore, abilita i permessi</string>
+    <string name="camera">Fotocamera</string>
+    <string name="gallery">Galleria</string>
+    <string name="enable">ABILITA</string>
+    <string name="grant">ABILITA</string>
+    <string name="no_publisher">Editore non trovato</string>
+    <string name="no_ed_year">Anno non trovato</string>
+    <string name="no_found">Non trovato</string>
+    <string name="action_edit">Modifica</string>
+    <string name="email">Email</string>
+    <string name="short_bio">Bio</string>
+    <string name="no_bio">No bio</string>
+    <string name="mail">Mail</string>
+    <string name="name">Nome</string>
+    <string name="edit_title">Modifica il tuo profilo</string>
+    <string name="name_insert">Inserisci il tuo nome</string>
+    <string name="mail_insert">Inserisci la tua mail</string>
+    <string name="action_save">Salva</string>
+    <string name="folder_error">Errore nella cartella</string>
+    <string name="msg">Per favore, abilita tutti i permessi</string>
+    <string name="profile_image">Immagine del profilo</string>
+    <string name="search_info">In cerca di informazioni…</string>
+    <string name="no_data">Nessun dato trovato</string>
+    <string name="to_book_scan">Alla scansione del libro</string>
+    <string name="to_profile">Al profilo</string>
+    <string name="import_isbn">Importa</string>
+    <string name="scan_your_isbn_code">Scansiona il codice ISBN</string>
+    <string name="upload">Carica!</string>
+    <string name="profile_not_exists">L\'immagine profilo non esiste</string>
+    <string name="perc">%…</string>
+    <string name="uploaded">Caricato</string>
+    <string name="uploading">Caricamento…</string>
+    <string name="isbn_missing">ISBN mancante</string>
+    <string name="author_missing">Autore mancante</string>
+    <string name="title_missing">Titolo mancante</string>
+    <string name="publ_missing">Editore mancante</string>
+    <string name="year_missing">Anno mancante</string>
+    <string name="condition_missing">Condizione mancante</string>
+    <string name="downloaded">Scaricato</string>
+
 </resources>

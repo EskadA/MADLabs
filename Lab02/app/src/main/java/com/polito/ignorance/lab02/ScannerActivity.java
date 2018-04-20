@@ -2,7 +2,6 @@ package com.polito.ignorance.lab02;
 
 import android.Manifest;
 import android.content.Context;
-import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
@@ -22,6 +21,7 @@ import com.google.android.gms.vision.barcode.Barcode;
 import com.google.android.gms.vision.barcode.BarcodeDetector;
 
 import java.io.IOException;
+
 import static java.lang.System.exit;
 
 
@@ -34,7 +34,7 @@ public class ScannerActivity extends AppCompatActivity {
     private CameraSource cameraSource;
     private TextView ISBNCodeEditText;
     private String ISBNCode;
-    //I don't add here shaed preferences because i don't want that the value scanned stays here permanently, i just put it on onSaveInstanceState to pass it to main activity
+    //I don't add here shared preferences because i don't want that the value scanned stays here permanently, i just put it on onSaveInstanceState to pass it to main activity
     private Button ButtonImport;
 
     private SharedPreferences preferences;
@@ -42,8 +42,6 @@ public class ScannerActivity extends AppCompatActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-
-
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_scanner);
         surfaceView = findViewById(R.id.surface_view);
@@ -52,7 +50,6 @@ public class ScannerActivity extends AppCompatActivity {
 
         preferences = getSharedPreferences("ISBN", Context.MODE_PRIVATE);
         editor = preferences.edit();
-
 
         // chiediamo di individuare QR code e EAN 13
         detector = new BarcodeDetector.Builder(getApplicationContext())
@@ -102,13 +99,11 @@ public class ScannerActivity extends AppCompatActivity {
                         public void run() {
                             ISBNCode = items.valueAt(0).displayValue;
                             ISBNCodeEditText.setText(ISBNCode);
-
                         }
                     });
 
             }
         });
-
 
         ButtonImport.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -121,7 +116,6 @@ public class ScannerActivity extends AppCompatActivity {
 
     }
 
-
     //Salva per la main activity l'ISBNCode acquisito
     protected void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
@@ -129,22 +123,12 @@ public class ScannerActivity extends AppCompatActivity {
         outState.putString("ISBNCode", ISBNCode);
     }
 
-
-
     private void activateCamera() {
 
         // verifichiamo che sia stata concessa la permission CAMERA
-
-
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
 
             if (ActivityCompat.shouldShowRequestPermissionRationale(this, Manifest.permission.CAMERA)) {
-                /*
-         *   OMISSIS: mostriamo finestra di dialogo che fornisce ulteriori
-         *            spiegazioni sulla permission richiesta
-         *
-         *
-         */
                 Log.d("debug","No Permission Camera");
             } else {
                 ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.CAMERA},PHOTO_REQUEST_CODE);

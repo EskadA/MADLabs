@@ -79,4 +79,23 @@
     <string name="folder_error">Folder error</string>
     <string name="msg">Please, enable all permissions</string>
     <string name="profile_image">Profile image</string>
+    <string name="search_info">Search info…</string>
+    <string name="no_data">No data</string>
+    <string name="to_book_scan">To Book Scan</string>
+    <string name="to_profile">To Profile</string>
+    <string name="import_isbn">Import</string>
+    <string name="scan_your_isbn_code">Scan Your ISBN Code</string>
+    <string name="upload">Upload!</string>
+    <string name="profile_not_exists">Profile image doesn\'t exists</string>
+    <string name="perc">%…</string>
+    <string name="uploaded">Uploaded</string>
+    <string name="uploading">Uploading…</string>
+    <string name="isbn_missing">ISBN Code missing</string>
+    <string name="author_missing">Author missing</string>
+    <string name="title_missing">Title missing</string>
+    <string name="publ_missing">Publisher missing</string>
+    <string name="year_missing">Publisher Year missing</string>
+    <string name="condition_missing">Condition missing</string>
+    <string name="downloaded">Downloaded</string>
+    <string name="downloading">Downloading…</string>
 </resources>
