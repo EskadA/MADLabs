@@ -1,0 +1,55 @@
+{
+  "project_info": {
+    "project_number": "629269023788",
+    "firebase_url": "https://lab03-20c62.firebaseio.com",
+    "project_id": "lab03-20c62",
+    "storage_bucket": "lab03-20c62.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:629269023788:android:96d6fd1014dd06f1",
+        "android_client_info": {
+          "package_name": "com.polito.ignorance.lab03"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "629269023788-086ii219h1a3nf1pcbhelstbdc7td63r.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.polito.ignorance.lab03",
+            "certificate_hash": "a1dd3c11174c753786b085b09c17472f5126144f"
+          }
+        },
+        {
+          "client_id": "629269023788-tev6eu15l640c9rs57s2jl1c6598qsn3.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBllstLeGi-nuAVNWtOhp_OBKpBs6RzzA4"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 2,
+          "other_platform_oauth_client": [
+            {
+              "client_id": "629269023788-tev6eu15l640c9rs57s2jl1c6598qsn3.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        },
+        "ads_service": {
+          "status": 2
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
