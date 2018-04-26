@@ -47,7 +47,7 @@ import com.polito.ignorance.lab03.tools.User;
 import java.io.File;
 import java.io.IOException;
 
-public class EditActivity extends AppCompatPermissionActivity {
+public class EditProfileActivity extends AppCompatPermissionActivity {
 
     private static final int GET_FROM_GALLERY = 5;
     private static final int PHOTO_REQUEST_CODE = 6;
@@ -281,7 +281,7 @@ public class EditActivity extends AppCompatPermissionActivity {
 
             @Override
             public void onClick(View v) {
-                AlertDialog.Builder builder = new AlertDialog.Builder(EditActivity.this);
+                AlertDialog.Builder builder = new AlertDialog.Builder(EditProfileActivity.this);
                 builder.setItems(new String[]{getString(R.string.camera), getString(R.string.gallery)}, new DialogInterface.OnClickListener() {
                     public void onClick(DialogInterface dialog, int which) {
                         switch (which) {
@@ -420,7 +420,7 @@ public class EditActivity extends AppCompatPermissionActivity {
                     @Override
                     public void onFailure(@NonNull Exception exception) {
                         progressDialog.dismiss();
-                        Toast.makeText(EditActivity.this, exception.getMessage(), Toast.LENGTH_LONG).show();
+                        Toast.makeText(EditProfileActivity.this, exception.getMessage(), Toast.LENGTH_LONG).show();
                     }
                 }).addOnProgressListener(new OnProgressListener<FileDownloadTask.TaskSnapshot>() {
                     @Override
@@ -436,7 +436,7 @@ public class EditActivity extends AppCompatPermissionActivity {
                 e.printStackTrace();
             }
         } else {
-            Toast.makeText(EditActivity.this, R.string.profile_not_exists, Toast.LENGTH_LONG).show();
+            Toast.makeText(EditProfileActivity.this, R.string.profile_not_exists, Toast.LENGTH_LONG).show();
         }
     }
 
@@ -458,7 +458,7 @@ public class EditActivity extends AppCompatPermissionActivity {
                 @Override
                 public void onFailure(@NonNull Exception exception) {
                     progressDialog.dismiss();
-                    Toast.makeText(EditActivity.this, R.string.profile_not_exists, Toast.LENGTH_LONG).show();
+                    Toast.makeText(EditProfileActivity.this, R.string.profile_not_exists, Toast.LENGTH_LONG).show();
                 }
             }).addOnProgressListener(new OnProgressListener<UploadTask.TaskSnapshot>() {
                 @Override
@@ -469,7 +469,7 @@ public class EditActivity extends AppCompatPermissionActivity {
                 }
             });
         } else {
-            Toast.makeText(EditActivity.this, R.string.profile_not_exists, Toast.LENGTH_LONG).show();
+            Toast.makeText(EditProfileActivity.this, R.string.profile_not_exists, Toast.LENGTH_LONG).show();
         }
     }
 

@@ -11,7 +11,7 @@ import com.google.firebase.auth.FirebaseAuth;
 
 public class DashboardActivity extends AppCompatActivity implements View.OnClickListener {
 
-    private Button btnLogout, btnProfile, btnInsertBook;
+    private Button btnLogout, btnProfile, btnInsertBook, btnSecretDoor;
 
     private FirebaseAuth auth;
 
@@ -43,8 +43,12 @@ public class DashboardActivity extends AppCompatActivity implements View.OnClick
                 startActivity(bookIntent);
                 break;
             case R.id.dashboard_profile:
-                Intent profileIntent = new Intent(DashboardActivity.this, ShowActivity.class);
+                Intent profileIntent = new Intent(DashboardActivity.this, ShowProfileActivity.class);
                 startActivity(profileIntent);
+                break;
+            case R.id.ehicomehere:
+                Intent secretIntent = new Intent(DashboardActivity.this, SearchBookActivity.class);
+                startActivity(secretIntent);
                 break;
         }
     }
@@ -61,12 +65,14 @@ public class DashboardActivity extends AppCompatActivity implements View.OnClick
         btnLogout     = (Button) findViewById(R.id.dashboard_logout);
         btnInsertBook = (Button) findViewById(R.id.dashboard_book);
         btnProfile    = (Button) findViewById(R.id.dashboard_profile);
+        btnSecretDoor = (Button) findViewById(R.id.ehicomehere);
     }
 
     private void setButtonListener(){
         btnLogout.setOnClickListener(this);
         btnInsertBook.setOnClickListener(this);
         btnProfile.setOnClickListener(this);
+        btnSecretDoor.setOnClickListener(this);
     }
 
     private void logoutUser() {

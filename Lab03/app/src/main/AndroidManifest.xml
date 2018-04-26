@@ -26,8 +26,9 @@
         <activity android:name=".DashboardActivity" />
         <activity android:name=".InsertBookActivity" />
         <activity android:name=".ScannerActivity" />
-        <activity android:name=".ShowActivity" />
-        <activity android:name=".EditActivity" />
+        <activity android:name=".ShowProfileActivity" />
+        <activity android:name=".EditProfileActivity" />
+        <activity android:name=".SearchBookActivity"></activity>
     </application>
 
 </manifest>

@@ -59,6 +59,7 @@ public class InsertBookActivity extends AppCompatPermissionActivity {
     private Bitmap bitmap;
     private String path;
     private boolean isChanged = false;
+    private int finish;
 
     //UserInterface
     private Button retrieveButton;
@@ -362,7 +363,7 @@ public class InsertBookActivity extends AppCompatPermissionActivity {
             return false;
         }
 
-        book = new Book(ISBNCode, title, author, publisher, publishYear, condition);
+        book = new Book(ISBNCode, title, author, publisher, publishYear, "", condition);
         return true;
     }
 
@@ -443,11 +444,55 @@ public class InsertBookActivity extends AppCompatPermissionActivity {
     }
 
     private void saveDataToFirebase(){
-        ref.child(email).child(ISBNCode).setValue(book, new DatabaseReference.CompletionListener() {
+        finish = 0;
+        database.child("title").child(book.getTitle().replaceAll("\\.", ",").toLowerCase()).child(email).push().setValue(book, new DatabaseReference.CompletionListener() {
 
             @Override
             public void onComplete(DatabaseError databaseError, DatabaseReference databaseReference) {
-                finish();
+                finish++;
+                if(finish == 5){
+                    finish();
+                }
+            }
+        });
+        database.child("author").child(book.getAuthor().replaceAll("\\.", ",").toLowerCase()).child(email).push().setValue(book, new DatabaseReference.CompletionListener() {
+
+            @Override
+            public void onComplete(DatabaseError databaseError, DatabaseReference databaseReference) {
+                finish++;
+                if(finish == 5){
+                    finish();
+                }
+            }
+        });
+        database.child("publisher").child(book.getPublisher().replaceAll("\\.", ",").toLowerCase()).child(email).push().setValue(book, new DatabaseReference.CompletionListener() {
+
+            @Override
+            public void onComplete(DatabaseError databaseError, DatabaseReference databaseReference) {
+                finish++;
+                if(finish == 5){
+                    finish();
+                }
+            }
+        });
+        database.child("genre").child(book.getGenre().replaceAll("\\.", ",").toLowerCase()).child(email).push().setValue(book, new DatabaseReference.CompletionListener() {
+
+            @Override
+            public void onComplete(DatabaseError databaseError, DatabaseReference databaseReference) {
+                finish++;
+                if(finish == 5){
+                    finish();
+                }
+            }
+        });
+        database.child("users").child(email).push().setValue(book, new DatabaseReference.CompletionListener() {
+
+            @Override
+            public void onComplete(DatabaseError databaseError, DatabaseReference databaseReference) {
+                finish++;
+                if(finish == 5){
+                    finish();
+                }
             }
         });
     }

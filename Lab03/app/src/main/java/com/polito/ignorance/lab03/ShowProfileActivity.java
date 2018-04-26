@@ -36,7 +36,7 @@ import com.polito.ignorance.lab03.tools.User;
 import java.io.File;
 import java.io.IOException;
 
-public class ShowActivity extends AppCompatActivity {
+public class ShowProfileActivity extends AppCompatActivity {
 
     private static final String filename = "profileImage.jpeg";
     private static final String TAG = "DatabaseError";
@@ -111,7 +111,7 @@ public class ShowActivity extends AppCompatActivity {
         switch (item.getItemId()) {
             case R.id.action_edit:
                 //Edit user profile
-                Intent edit = new Intent(ShowActivity.this, EditActivity.class);
+                Intent edit = new Intent(ShowProfileActivity.this, EditProfileActivity.class);
                 startActivity(edit);
                 return true;
             default:
@@ -185,7 +185,7 @@ public class ShowActivity extends AppCompatActivity {
                     @Override
                     public void onFailure(@NonNull Exception exception) {
                         progressDialog.dismiss();
-                        Toast.makeText(ShowActivity.this, R.string.profile_not_exists, Toast.LENGTH_LONG).show();
+                        Toast.makeText(ShowProfileActivity.this, R.string.profile_not_exists, Toast.LENGTH_LONG).show();
                     }
                 }).addOnProgressListener(new OnProgressListener<FileDownloadTask.TaskSnapshot>() {
                     @Override
@@ -201,7 +201,7 @@ public class ShowActivity extends AppCompatActivity {
                 e.printStackTrace();
             }
         } else {
-            Toast.makeText(ShowActivity.this, R.string.profile_not_exists, Toast.LENGTH_LONG).show();
+            Toast.makeText(ShowProfileActivity.this, R.string.profile_not_exists, Toast.LENGTH_LONG).show();
         }
     }
 }

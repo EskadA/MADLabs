@@ -1,15 +1,16 @@
 package com.polito.ignorance.lab03.tools;
 
 public class Book {
-    private String ISBN, title, author, publisher, year, condition;
+    private String ISBN, title, author, publisher, year, genre, condition;
 
-    public Book(String ISBN, String title, String author, String publisher, String year, String condition) {
+    public Book(String ISBN, String title, String author, String publisher, String year, String genre, String condition) {
 
         this.ISBN = ISBN;
         this.title = title;
         this.author = author;
         this.publisher = publisher;
         this.year = year;
+        this.genre = genre;
         this.condition = condition;
     }
 
@@ -55,6 +56,14 @@ public class Book {
 
     public String getCondition() {
         return condition;
+    }
+
+    public String getGenre() {
+        return genre;
+    }
+
+    public void setGenre(String genre) {
+        this.genre = genre;
     }
 
     public void setCondition(String condition) {
